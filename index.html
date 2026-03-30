@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Skill Cloud Starter</title>
+    <style>
+      :root {
+        --bg: #f4efe7;
+        --card: rgba(255, 255, 255, 0.82);
+        --text: #1c1b1a;
+        --muted: #6b655d;
+        --line: rgba(28, 27, 26, 0.12);
+        --accent: #0b6b60;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        background:
+          radial-gradient(circle at top left, rgba(11, 107, 96, 0.14), transparent 30%),
+          linear-gradient(135deg, #f8f4ed, #ede4d8 55%, #dfd2c3);
+        color: var(--text);
+      }
+
+      main {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 32px 20px;
+      }
+
+      section {
+        width: min(760px, 100%);
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 36px;
+        box-shadow: 0 18px 60px rgba(40, 31, 20, 0.12);
+        backdrop-filter: blur(10px);
+      }
+
+      h1 {
+        margin: 0 0 12px;
+        font-size: clamp(2.2rem, 6vw, 4.2rem);
+        line-height: 0.95;
+        letter-spacing: -0.04em;
+      }
+
+      p {
+        margin: 0 0 16px;
+        font-size: 1.05rem;
+        line-height: 1.7;
+      }
+
+      code {
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 0.95em;
+        background: rgba(11, 107, 96, 0.08);
+        padding: 2px 8px;
+        border-radius: 999px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      .item {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 16px 18px;
+        background: rgba(255, 255, 255, 0.66);
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      a {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section>
+        <p class="muted">Local skill + cloud server</p>
+        <h1>Skill Cloud Starter</h1>
+        <p>
+          这个项目已经准备好了一个本地 skill 模板，以及一个可以部署到 Vercel 的
+          轻量 Python API。
+        </p>
+        <div class="grid">
+          <div class="item">
+            <strong>健康检查</strong>
+            <p class="muted"><code>GET /api/health</code></p>
+          </div>
+          <div class="item">
+            <strong>技能调用</strong>
+            <p class="muted"><code>POST /api/invoke</code></p>
+          </div>
+          <div class="item">
+            <strong>本地调试</strong>
+            <p class="muted">
+              <code>python3 skill/scripts/local_skill.py "你的输入"</code>
+            </p>
+          </div>
+        </div>
+        <p style="margin-top: 24px">
+          部署完成后，把这里的通用逻辑替换成你真实的 skill 工作流就可以了。
+        </p>
+      </section>
+    </main>
+  </body>
+</html>
