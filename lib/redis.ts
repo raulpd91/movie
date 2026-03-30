@@ -4,6 +4,7 @@ import { createClient, type RedisClientType } from "redis";
 type RedisAdapter = {
   get<T = unknown>(key: string): Promise<T | null>;
   set(key: string, value: unknown): Promise<unknown>;
+  close(): Promise<void>;
 };
 
 declare global {
@@ -41,6 +42,9 @@ function createUpstashAdapter(config: { url: string; token: string }): RedisAdap
     },
     async set(key: string, value: unknown) {
       return client.set(key, value);
+    },
+    async close() {
+      return;
     },
   };
 }
@@ -86,18 +90,55 @@ function createNodeRedisAdapter(redisUrl: string): RedisAdapter {
 
       return connectedClient.set(key, serializedValue);
     },
+    async close() {
+      if (client.isOpen) {
+        await client.quit();
+      }
+    },
+  };
+}
+
+function createCompositeAdapter(
+  primary: RedisAdapter,
+  secondary: RedisAdapter,
+): RedisAdapter {
+  return {
+    async get<T>(key: string) {
+      const first = await primary.get<T>(key);
+      if (first !== null) {
+        return first;
+      }
+
+      return secondary.get<T>(key);
+    },
+    async set(key: string, value: unknown) {
+      // Keep both stores in sync to avoid env-source drift across runtime contexts.
+      await Promise.all([primary.set(key, value), secondary.set(key, value)]);
+      return "OK";
+    },
+    async close() {
+      await Promise.all([primary.close(), secondary.close()]);
+    },
   };
 }
 
 function createRedisAdapter() {
+  const redisUrl = readRedisUrl();
   const restConfig = readRestConfig();
-  if (restConfig) {
-    return createUpstashAdapter(restConfig);
+
+  if (redisUrl && restConfig) {
+    return createCompositeAdapter(
+      createNodeRedisAdapter(redisUrl),
+      createUpstashAdapter(restConfig),
+    );
   }
 
-  const redisUrl = readRedisUrl();
   if (redisUrl) {
     return createNodeRedisAdapter(redisUrl);
+  }
+
+  if (restConfig) {
+    return createUpstashAdapter(restConfig);
   }
 
   throw new Error(
@@ -119,5 +160,8 @@ export const redis: RedisAdapter = {
   },
   async set(key: string, value: unknown) {
     return getRedisAdapter().set(key, value);
+  },
+  async close() {
+    await getRedisAdapter().close();
   },
 };

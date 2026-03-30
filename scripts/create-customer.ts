@@ -140,5 +140,7 @@ main().catch((error) => {
   const message =
     error instanceof Error ? error.message : "Failed to create customer.";
   console.error(message);
-  process.exit(1);
+  process.exitCode = 1;
+}).finally(async () => {
+  await redis.close();
 });

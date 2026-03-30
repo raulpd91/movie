@@ -1,22 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { hashApiKey } from "@/lib/auth";
+import { hashInstallToken } from "@/lib/auth";
 import { executeMarkMovie, type CustomerRecord, type MarkMoviePayload } from "@/lib/mark-movie";
 import { redis } from "@/lib/redis";
 
-function getApiKeyFromAuthorizationHeader(request: NextRequest) {
-  const authorization = request.headers.get("authorization");
+function getInstallToken(request: NextRequest) {
+  const token = request.headers.get("x-install-token")?.trim();
 
-  if (!authorization) {
+  if (!token) {
     return null;
   }
 
-  const [scheme, token] = authorization.split(" ");
-
-  if (scheme !== "Bearer" || !token?.trim()) {
-    return null;
-  }
-
-  return token.trim();
+  return token;
 }
 
 function isCustomerRecord(value: unknown): value is CustomerRecord {
@@ -35,25 +29,25 @@ function isCustomerRecord(value: unknown): value is CustomerRecord {
 
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = getApiKeyFromAuthorizationHeader(request);
-    if (!apiKey) {
+    const installToken = getInstallToken(request);
+    if (!installToken) {
       return NextResponse.json(
         {
           success: false,
-          message: "Missing or invalid Authorization header.",
+          message: "Missing install token.",
         },
         { status: 401 },
       );
     }
 
-    const hashedApiKey = hashApiKey(apiKey);
-    const customerRecord = await redis.get(`apikey:${hashedApiKey}`);
+    const hashedInstallToken = hashInstallToken(installToken);
+    const customerRecord = await redis.get(`installtoken:${hashedInstallToken}`);
 
     if (!isCustomerRecord(customerRecord)) {
       return NextResponse.json(
         {
           success: false,
-          message: "Invalid API key.",
+          message: "Invalid install token.",
         },
         { status: 401 },
       );
@@ -63,7 +57,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "API key is inactive.",
+          message: "Install token is inactive.",
         },
         { status: 403 },
       );

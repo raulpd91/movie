@@ -17,9 +17,11 @@ description: Use this skill when the user wants to log a watched movie through n
 ## 工作方式
 
 1. 接收 `title`、`rating`、`comment`、`date`
-2. 查询 TMDB，取回海报和上映日期
-3. 将观影记录写入 Notion
-4. 生成并返回 OG 观影卡片直链
+2. 安装即用模式走 `X-Install-Token` 鉴权（`POST /api/skill/mark-movie`）
+3. 运维模式走 `Authorization: Bearer <api_key>`（`POST /api/mark-movie`）
+4. 查询 TMDB，取回海报和上映日期，失败时降级继续
+5. 将观影记录写入 Notion（含 `Customer ID`、`Customer Name`、`TMDB Status`）
+6. 生成并返回带签名的 OG 观影卡片直链
 
 ## 云端接口
 
@@ -29,6 +31,9 @@ description: Use this skill when the user wants to log a watched movie through n
 
 - `app/api/mark-movie/route.ts`
 - `app/api/og/route.tsx`
+- `lib/sign.ts`
+- `lib/auth.ts`
+- `lib/redis.ts`
 - `skill/references/api-contract.md`
 
 如果要扩展更多字段、标签体系或多数据源同步，再继续补充 `skill/references/` 下的文档。

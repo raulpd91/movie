@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "admin:create": "tsx scripts/create-customer.ts",
+    "admin:create-install-token": "tsx scripts/create-install-token.ts",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

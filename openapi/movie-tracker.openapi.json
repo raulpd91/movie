@@ -7,14 +7,32 @@
   },
   "servers": [
     {
-      "url": "https://movie-rouge-psi.vercel.app"
+      "url": "https://movie-raulpd91.vercel.app"
     }
   ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      },
+      "installTokenAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Install-Token"
+      }
+    }
+  },
   "paths": {
     "/api/mark-movie": {
       "post": {
         "summary": "Record a watched movie",
         "description": "Saves a movie log to Notion and returns a dynamic OG card URL.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -64,11 +82,110 @@
                     "notion_url": {
                       "type": "string",
                       "format": "uri"
+                    },
+                    "customer_id": {
+                      "type": "string"
+                    },
+                    "tmdb_status": {
+                      "type": "string",
+                      "enum": ["matched", "fallback", "error"]
                     }
                   }
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid API key"
+          },
+          "403": {
+            "description": "API key is inactive"
+          },
+          "400": {
+            "description": "Invalid input payload"
+          }
+        }
+      }
+    },
+    "/api/skill/mark-movie": {
+      "post": {
+        "summary": "Record a watched movie (install mode)",
+        "description": "Installation-ready endpoint for external customers. Uses X-Install-Token instead of user-managed API keys.",
+        "security": [
+          {
+            "installTokenAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "rating"],
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "rating": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 5
+                  },
+                  "comment": {
+                    "type": "string"
+                  },
+                  "date": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Movie logged successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "card_image_url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "notion_url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "customer_id": {
+                      "type": "string"
+                    },
+                    "tmdb_status": {
+                      "type": "string",
+                      "enum": ["matched", "fallback", "error"]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid install token"
+          },
+          "403": {
+            "description": "Install token is inactive"
+          },
+          "400": {
+            "description": "Invalid input payload"
           }
         }
       }

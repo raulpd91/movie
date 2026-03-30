@@ -1,8 +1,66 @@
 import { ImageResponse } from "@vercel/og";
 import { NextRequest, NextResponse } from "next/server";
-import { verifyOgUrl } from "@/lib/sign";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
+
+function toSortedEntries(params: Iterable<[string, string]>) {
+  return [...params]
+    .filter(([key]) => key !== "sig")
+    .sort(([leftKey, leftValue], [rightKey, rightValue]) => {
+      if (leftKey === rightKey) {
+        return leftValue.localeCompare(rightValue);
+      }
+
+      return leftKey.localeCompare(rightKey);
+    });
+}
+
+function buildCanonicalQuery(entries: Iterable<[string, string]>) {
+  const searchParams = new URLSearchParams();
+
+  for (const [key, value] of toSortedEntries(entries)) {
+    searchParams.append(key, value);
+  }
+
+  return searchParams.toString();
+}
+
+function toHex(buffer: ArrayBuffer) {
+  return Array.from(new Uint8Array(buffer))
+    .map((value) => value.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function verifyOgUrl(requestUrl: string) {
+  const secret = process.env.OG_SIGNING_SECRET;
+  if (!secret) {
+    return false;
+  }
+
+  const url = new URL(requestUrl);
+  const signature = url.searchParams.get("sig");
+  if (!signature) {
+    return false;
+  }
+
+  const query = buildCanonicalQuery(url.searchParams.entries());
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const digest = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(query),
+  );
+  const expectedSignature = toHex(digest);
+
+  return signature === expectedSignature;
+}
 
 function buildStars(rating: number) {
   const normalized = Math.max(1, Math.min(5, Number.isFinite(rating) ? rating : 0));
@@ -10,7 +68,7 @@ function buildStars(rating: number) {
 }
 
 export async function GET(request: NextRequest) {
-  if (!verifyOgUrl(request.url)) {
+  if (!(await verifyOgUrl(request.url))) {
     return NextResponse.json(
       {
         success: false,

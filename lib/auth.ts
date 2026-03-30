@@ -1,8 +1,9 @@
 import { createHmac, randomBytes } from "node:crypto";
 
 const API_KEY_PREFIX = "sk_live";
+const INSTALL_TOKEN_PREFIX = "it_live";
 
-function readApiKeyHashSecret() {
+function readHashSecret() {
   const secret = process.env.API_KEY_HASH_SECRET;
 
   if (!secret) {
@@ -25,8 +26,24 @@ export function hashApiKey(apiKey: string) {
     throw new Error("API key cannot be empty.");
   }
 
-  return createHmac("sha256", readApiKeyHashSecret())
+  return createHmac("sha256", readHashSecret())
     .update(normalizedApiKey)
+    .digest("hex");
+}
+
+export function generateInstallToken() {
+  return `${INSTALL_TOKEN_PREFIX}_${randomBytes(32).toString("base64url")}`;
+}
+
+export function hashInstallToken(token: string) {
+  const normalizedToken = token.trim();
+
+  if (!normalizedToken) {
+    throw new Error("Install token cannot be empty.");
+  }
+
+  return createHmac("sha256", readHashSecret())
+    .update(normalizedToken)
     .digest("hex");
 }
 
