@@ -1,7 +1,8 @@
 import { ImageResponse } from "@vercel/og";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { verifyOgUrl } from "@/lib/sign";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 function buildStars(rating: number) {
   const normalized = Math.max(1, Math.min(5, Number.isFinite(rating) ? rating : 0));
@@ -9,6 +10,16 @@ function buildStars(rating: number) {
 }
 
 export async function GET(request: NextRequest) {
+  if (!verifyOgUrl(request.url)) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Invalid or missing image signature.",
+      },
+      { status: 403 },
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const title = searchParams.get("title") || "Untitled Movie";
   const poster = searchParams.get("poster");
