@@ -1,0 +1,77 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Movie Tracker Agent Skill API",
+    "version": "1.0.0",
+    "description": "Log watched movies, sync to Notion, and return a dynamic movie card image."
+  },
+  "servers": [
+    {
+      "url": "https://movie-rouge-psi.vercel.app"
+    }
+  ],
+  "paths": {
+    "/api/mark-movie": {
+      "post": {
+        "summary": "Record a watched movie",
+        "description": "Saves a movie log to Notion and returns a dynamic OG card URL.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "rating"],
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "rating": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 5
+                  },
+                  "comment": {
+                    "type": "string"
+                  },
+                  "date": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Movie logged successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "card_image_url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "notion_url": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

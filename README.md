@@ -1,61 +1,62 @@
-# Skill Cloud Starter
+# Movie Tracker Agent Skill
 
-这是一个可直接推送到 GitHub 并部署到 Vercel 的通用 skill 项目模板。
+一个部署在 Vercel 上的 Movie Tracker 智能体技能服务。它接收电影标题、评分、短评和日期，自动查询 TMDB 元数据，将观影记录写入 Notion，并返回一张动态生成的观影卡片。
 
-它同时包含两部分：
+## 技术栈
 
-- `skill/`：本地 skill 定义、说明和调试脚本
-- `api/`：部署到 Vercel 的轻量 Python serverless API
+- Next.js App Router
+- TypeScript
+- Vercel Serverless / Edge Functions
+- `@vercel/og`
+- TMDB API
+- Notion API
 
-## 项目结构
+## 核心接口
 
-```text
-.
-├── api/
-│   ├── health.py
-│   └── invoke.py
-├── skill/
-│   ├── SKILL.md
-│   ├── references/
-│   │   └── api-contract.md
-│   └── scripts/
-│       └── local_skill.py
-├── src/
-│   ├── __init__.py
-│   └── skill_runtime.py
-├── examples/
-│   └── request.json
-├── .gitignore
-├── index.html
-└── vercel.json
-```
-
-## 本地能力
-
-本地脚本直接复用 `src/skill_runtime.py` 的逻辑：
-
-```bash
-python3 skill/scripts/local_skill.py "帮我生成一份简短的产品介绍"
-```
-
-## 云端能力
-
-部署到 Vercel 后，你会得到两个接口：
-
+- `POST /api/mark-movie`
+- `GET /api/og`
 - `GET /api/health`
-- `POST /api/invoke`
 
-示例请求：
+## 请求示例
 
 ```bash
-curl -X POST https://your-project.vercel.app/api/invoke \
+curl -X POST https://your-project.vercel.app/api/mark-movie \
   -H "Content-Type: application/json" \
-  -d @examples/request.json
+  -d '{
+    "title": "沙丘",
+    "rating": 5,
+    "comment": "视听震撼，世界观浑厚，二刷也值得。",
+    "date": "2026-03-30"
+  }'
 ```
 
-## 下一步
+## 环境变量
 
-1. 把这个仓库推到你的 GitHub
-2. 在 Vercel 导入该仓库
-3. 配置环境变量和自定义域名（如果需要）
-4. 再把 `src/skill_runtime.py` 里的通用逻辑换成你真实的 skill 业务能力
+复制 `.env.example` 到 `.env.local`，并填写：
+
+```bash
+TMDB_API_KEY=
+NOTION_API_KEY=
+NOTION_DATABASE_ID=
+NEXT_PUBLIC_APP_URL=
+```
+
+## 本地运行
+
+```bash
+npm install
+npm run dev
+```
+
+## Notion 数据库字段
+
+当前代码默认目标数据库中存在以下属性：
+
+- `Title` - title
+- `Poster URL` - url
+- `Rating` - number
+- `Comment` - rich_text
+- `Date` - date
+- `Release Date` - rich_text
+
+如果你的数据库字段名不同，需要同步修改 [app/api/mark-movie/route.ts](/Users/user/Documents/openai-codex/app/api/mark-movie/route.ts) 里的属性映射。

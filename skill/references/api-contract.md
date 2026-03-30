@@ -1,17 +1,15 @@
 # API Contract
 
-## GET /api/health
-
-用于健康检查，返回服务名、skill 标识和可用接口列表。
-
-## POST /api/invoke
+## POST /api/mark-movie
 
 ### Request
 
 ```json
 {
-  "input": "帮我生成一份产品发布草稿",
-  "mode": "draft"
+  "title": "沙丘",
+  "rating": 5,
+  "comment": "视听震撼，世界观浑厚，二刷也值得。",
+  "date": "2026-03-30"
 }
 ```
 
@@ -19,21 +17,22 @@
 
 ```json
 {
-  "service": "skill-cloud-starter",
-  "skill": "starter-skill",
-  "mode": "draft",
-  "timestamp": "2026-03-30T00:00:00+00:00",
-  "input": "帮我生成一份产品发布草稿",
-  "summary": "这是一个通用 starter 响应。",
-  "steps": [
-    "识别任务目标：帮我生成一份产品发布草稿",
-    "提取输入中的关键约束、语气和输出格式偏好",
-    "调用你的真实业务逻辑或外部工具完成任务",
-    "生成结构化结果并返回给本地端或云端调用方"
-  ],
-  "output": {
-    "title": "Starter Skill Output",
-    "body": "当前返回的是模板内容。"
+  "success": true,
+  "message": "已记录《沙丘》的观影信息，并生成了观影卡片。",
+  "card_image_url": "https://your-domain.vercel.app/api/og?...",
+  "notion_url": "https://www.notion.so/...",
+  "movie": {
+    "title": "沙丘",
+    "release_date": "2021-09-15",
+    "poster_url": "https://image.tmdb.org/t/p/w500/..."
   }
 }
 ```
+
+## GET /api/og
+
+通过 `title`、`poster`、`rating`、`comment`、`releaseDate` 动态生成电影卡片图片。
+
+## GET /api/health
+
+返回服务健康状态和可用接口列表。
